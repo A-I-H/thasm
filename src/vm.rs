@@ -5,6 +5,7 @@ pub struct VM {
     registers: [i32; 32],
     pc: usize,
     program: Vec<u8>,
+    remainder: u32,
 }
 
 impl VM {
@@ -13,43 +14,73 @@ impl VM {
             registers: [0; 32],
             pc: 0,
             program: vec![],
+            remainder: 0,
         }
     }
 
-    /// Loops as long as instructions can be executed.
     pub fn run(&mut self) {
-        let mut is_done = false;
-        while !is_done {
-            is_done = self.execute_instruction();
+        let mut done = false;
+        while !done {
+            done = self.execute_instruction();
         }
     }
 
-    /// Executes one instruction. Meant to allow for more controlled execution of the VM
     pub fn run_once(&mut self) {
         self.execute_instruction();
     }
 
-
     fn execute_instruction(&mut self) -> bool {
         if self.pc >= self.program.len() {
-            return false;
-        }
+            return true;
+        };
+
         match self.decode_opcode() {
             Opcode::LOAD => {
-                let register = self.next_8_bits() as usize;
-                let number = self.next_16_bits() as u32;
-                self.registers[register] = number as i32;
+                let register = self.next_8_bits() as usize; // We cast to usize so we can use it as an index into the array
+                let number = self.next_16_bits() as u16;
+                self.registers[register] = number as i32; // Our registers are i32s, so we need to cast it. We'll cover that later.
+            },
+            Opcode::ADD => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                self.registers[self.next_8_bits() as usize] = register1 + register2;
+            },
+            Opcode::SUB => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                self.registers[self.next_8_bits() as usize] = register1 - register2;
+            },
+            Opcode::MUL => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                self.registers[self.next_8_bits() as usize] = register1 * register2;
+            },
+            Opcode::DIV => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                self.registers[self.next_8_bits() as usize] = register1 / register2;
+                self.remainder = (register1 % register2) as u32;
             },
             Opcode::HLT => {
                 println!("HLT encountered");
-                return false;
+                return true;
             },
             _ => {
-                println!("Unrecognized opcode found! Terminating!");
-                return false;
-            },
+              println!("Unrecognized opcode found! Terminating!");
+              return true;
+            }
         }
-        true
+
+        false
+    }
+
+    pub fn get_test_vm() -> VM {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 5;
+        test_vm.registers[1] = 10;
+        // test_vm.float_registers[0] = 5.0;
+        // test_vm.float_registers[1] = 10.0;
+        test_vm
     }
 
     fn decode_opcode(&mut self) -> Opcode {
@@ -84,9 +115,9 @@ mod tests {
     #[test]
     fn test_opcode_hlt() {
       let mut test_vm = VM::new();
-      let test_bytes = vec![0,0,0,0];
+      let test_bytes = vec![5,0,0,0];
       test_vm.program = test_bytes;
-      test_vm.run();
+      test_vm.run_once();
       assert_eq!(test_vm.pc, 1);
     }
 
@@ -95,13 +126,13 @@ mod tests {
       let mut test_vm = VM::new();
       let test_bytes = vec![200,0,0,0];
       test_vm.program = test_bytes;
-      test_vm.run();
+      test_vm.run_once();
       assert_eq!(test_vm.pc, 1);
     }
 
     #[test]
     fn test_load_opcode() {
-    let mut test_vm = VM::new();
+    let mut test_vm = VM::get_test_vm();
     test_vm.program = vec![0, 0, 1, 244]; // Remember, this is how we represent 500 using two u8s in little endian format
     test_vm.run();
     assert_eq!(test_vm.registers[0], 500);

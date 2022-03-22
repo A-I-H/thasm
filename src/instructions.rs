@@ -1,15 +1,24 @@
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
-  HLT,
   LOAD,
+  ADD,
+  SUB,
+  MUL,
+  DIV,
+  HLT,
   IGL
 }
 
 impl From<u8> for Opcode {
     fn from(v: u8) -> Self {
         match v {
-            0 => return Opcode::HLT,
-            _ => return Opcode::IGL
+          0 => return Opcode::LOAD,
+          1 => return Opcode::ADD,
+          2 => return Opcode::SUB,
+          3 => return Opcode::MUL,
+          4 => return Opcode::DIV,
+          5 => return Opcode::HLT,
+          _ => return Opcode::IGL,
         }
     }
 }
