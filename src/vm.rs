@@ -65,6 +65,28 @@ impl VM {
                 println!("HLT encountered");
                 return true;
             },
+            Opcode::JMP => {
+                let target = self.registers[self.next_8_bits() as usize];
+                self.pc = target as usize;
+            },
+            Opcode::JMPF => {
+                let value = self.registers[self.next_8_bits() as usize] as usize;
+                self.pc += value;
+            },
+            Opcode::JMPB => {
+                let value = self.registers[self.next_8_bits() as usize] as usize;
+                self.pc -= value;
+            },
+            Opcode::EQ => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                if register1 == register2 {
+                    self.registers[self.next_8_bits() as usize] = 1;
+                } else {
+                    self.registers[self.next_8_bits() as usize] = 0;
+                }
+                self.next_8_bits();
+            },
             _ => {
               println!("Unrecognized opcode found! Terminating!");
               return true;
@@ -136,5 +158,65 @@ mod tests {
     test_vm.program = vec![0, 0, 1, 244]; // Remember, this is how we represent 500 using two u8s in little endian format
     test_vm.run();
     assert_eq!(test_vm.registers[0], 500);
+    }
+
+    #[test]
+    fn test_add_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.program = vec![1, 0, 1, 2];
+        test_vm.run();
+        assert_eq!(test_vm.registers[2], 15);
+    }
+
+    #[test]
+    fn test_sub_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.program = vec![2, 1, 0, 2];
+        test_vm.run();
+        assert_eq!(test_vm.registers[2], 5);
+    }
+
+    #[test]
+    fn test_mul_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.program = vec![3, 0, 1, 2];
+        test_vm.run();
+        assert_eq!(test_vm.registers[2], 50);
+    }
+
+    #[test]
+    fn test_div_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.program = vec![4, 1, 0, 2];
+        test_vm.run();
+        assert_eq!(test_vm.registers[2], 2);
+    }
+
+    #[test]
+    fn test_jmp_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.registers[0] = 1;
+        test_vm.program = vec![6, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.pc, 1);
+    }
+
+    #[test]
+    fn test_jmpf_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.registers[0] = 2;
+        test_vm.program = vec![7, 0, 0, 0, 6, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.pc, 4);
+    }
+
+#[test]
+    fn test_jmpb_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.registers[1] = 6;
+        test_vm.program = vec![0, 0, 0, 10, 8, 1, 0, 0];
+        test_vm.run_once();
+        test_vm.run_once();
+        assert_eq!(test_vm.pc, 0);
     }
 }

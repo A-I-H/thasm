@@ -1,12 +1,16 @@
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
-  LOAD,
-  ADD,
-  SUB,
-  MUL,
-  DIV,
-  HLT,
-  IGL
+    LOAD,
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    HLT,
+    JMP,
+    JMPF,
+    JMPB,
+    EQ,
+    IGL
 }
 
 impl From<u8> for Opcode {
@@ -18,6 +22,10 @@ impl From<u8> for Opcode {
           3 => return Opcode::MUL,
           4 => return Opcode::DIV,
           5 => return Opcode::HLT,
+          6 => return Opcode::JMP,
+          7 => return Opcode::JMPF,
+          8 => return Opcode::JMPB,
+          9 => return Opcode::EQ,
           _ => return Opcode::IGL,
         }
     }
