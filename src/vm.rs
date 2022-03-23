@@ -2,9 +2,9 @@ use std::vec;
 use crate::instructions::*;
 
 pub struct VM {
-    registers: [i32; 32],
+    pub registers: [i32; 32],
     pc: usize,
-    program: Vec<u8>,
+    pub program: Vec<u8>,
     remainder: u32,
 }
 
@@ -27,6 +27,10 @@ impl VM {
 
     pub fn run_once(&mut self) {
         self.execute_instruction();
+    }
+
+    pub fn add_byte(&mut self, b: u8) {
+        self.program.push(b);
     }
 
     fn execute_instruction(&mut self) -> bool {
