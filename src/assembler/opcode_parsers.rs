@@ -18,6 +18,10 @@ fn opcode_load(s: &str) -> Token {
     //     Ok(_v) => return Token::Op{code: Opcode::LOAD},
     //     Err(_e) => return Token::Op{code: Opcode::IGL},
     // }
+
+    let sv: Vec<&str> = s.split(" ").collect();
+    Token::from(sv[0])
+
 }
 
 #[cfg(test)]
@@ -30,7 +34,7 @@ mod tests {
     fn test_opcode_load() {
         // First tests that the opcode is detected and parsed correctly
         let result = opcode_load("load");
-        assert_eq!(result.is_ok(), true);
+        assert_ne!(result, true);
         let (rest, token) = result.unwrap();
         assert_eq!(token, Token::Op{code: Opcode::LOAD});
         assert_eq!(rest, "");
