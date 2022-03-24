@@ -1,32 +1,15 @@
-use nom::{bytes::complete::tag, IResult};
-
-use crate::instructions::Opcode;
+use nom::{bytes::complete::tag, IResult, sequence::delimited};
 
 use super::Token;
 
-fn opcode_load(s: &str) -> Token {
-    // tag("load") >> (Token::Op{code: Opcode::LOAD})
-    // let token: Token;
-    // if tag("load")(s).is_ok() {
-    //     token = Token::Op{code: Opcode::LOAD};
-    // };
-    // return token;
-
-    // tag("load")(s).unwrap().1
-
-    // match tag("load")(s) {
-    //     Ok(_v) => return Token::Op{code: Opcode::LOAD},
-    //     Err(_e) => return Token::Op{code: Opcode::IGL},
-    // }
-
-    let sv: Vec<&str> = s.split(" ").collect();
-    Token::from(sv[0])
-
+fn opcode_load(s: &str) -> IResult<&str, Token> {
+    tag("load")(s)
+        .map(|(res,input)| (res, input.into()))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::assembler::Token;
+    use crate::{assembler::Token, instructions::Opcode};
 
     use super::*;
 
@@ -34,7 +17,7 @@ mod tests {
     fn test_opcode_load() {
         // First tests that the opcode is detected and parsed correctly
         let result = opcode_load("load");
-        assert_ne!(result, true);
+        assert_eq!(result.is_ok(), true);
         let (rest, token) = result.unwrap();
         assert_eq!(token, Token::Op{code: Opcode::LOAD});
         assert_eq!(rest, "");
