@@ -1,8 +1,8 @@
-use nom::{bytes::complete::tag, IResult, sequence::delimited};
+use nom::{bytes::complete::tag, IResult};
 
 use super::Token;
 
-fn opcode_load(s: &str) -> IResult<&str, Token> {
+pub fn opcode_load(s: &str) -> IResult<&str, Token> {
     tag("load")(s)
         .map(|(res,input)| (res, input.into()))
 }
