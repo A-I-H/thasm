@@ -1,9 +1,9 @@
-use nom::{bytes::complete::tag, IResult};
+use nom::{bytes::complete::tag_no_case, IResult};
 
 use super::Token;
 
 pub fn opcode_load(s: &str) -> IResult<&str, Token> {
-    tag("load")(s)
+    tag_no_case("load")(s)
         .map(|(res,input)| (res, input.into()))
 }
 

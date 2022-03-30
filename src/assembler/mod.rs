@@ -1,7 +1,8 @@
 pub mod opcode_parsers;
 pub mod register_parsers;
-
-use nom::{number, combinator::complete};
+pub mod operand_parsers;
+pub mod instruction_parsers;
+pub mod program_parsers;
 
 use crate::instructions::Opcode;
 
@@ -9,19 +10,14 @@ use crate::instructions::Opcode;
 pub enum Token {
     Op{code: Opcode},
     Register{reg_num: u8},
+    IntegerOperand{value: i32},
 }
 
 impl From<&str> for Token {
     fn from(s: &str) -> Self {
         match s {
             "load" => Token::Op{code: Opcode::LOAD},
-            _ => {
-                // Token::Register{ reg_num: s.parse::<u8>().unwrap() }\
-                match s.parse::<u8>() {
-                    Ok(v) => Token::Register{ reg_num: v },
-                    Err(_) => unimplemented!("Nope"),
-                }
-            },
+            _ => unimplemented!(),
         }
     }
 }
