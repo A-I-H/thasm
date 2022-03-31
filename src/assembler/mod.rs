@@ -15,7 +15,7 @@ pub enum Token {
 
 impl From<&str> for Token {
     fn from(s: &str) -> Self {
-        match s {
+        match &s.to_lowercase() as &str {
             "load" => Token::Op{code: Opcode::LOAD},
             _ => unimplemented!(),
         }

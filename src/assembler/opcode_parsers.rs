@@ -1,10 +1,9 @@
 use nom::{bytes::complete::tag_no_case, IResult};
-
+use crate::instructions::Opcode;
 use super::Token;
 
-pub fn opcode_load(s: &str) -> IResult<&str, Token> {
-    tag_no_case("load")(s)
-        .map(|(res,input)| (res, input.into()))
+pub fn opcode(s: &str) -> Token {
+    Token::Op{code: Opcode::from(s)}
 }
 
 #[cfg(test)]
@@ -16,14 +15,11 @@ mod tests {
     #[test]
     fn test_opcode_load() {
         // First tests that the opcode is detected and parsed correctly
-        let result = opcode_load("load");
-        assert_eq!(result.is_ok(), true);
-        let (rest, token) = result.unwrap();
+        let token = opcode("load");
         assert_eq!(token, Token::Op{code: Opcode::LOAD});
-        assert_eq!(rest, "");
 
         // Tests that an invalid opcode isn't recognized
-        let result = opcode_load("aold");
-        assert_eq!(result.is_ok(), false);
+        let token = opcode("aold");
+        assert_eq!(token, Token::Op{code: Opcode::IGL});
     }
 }
