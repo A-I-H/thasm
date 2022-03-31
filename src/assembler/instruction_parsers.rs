@@ -1,9 +1,10 @@
 use nom::IResult;
-
+use nom::bytes::complete::tag;
 use crate::assembler::Token;
 use crate::assembler::opcode_parsers::*;
 use crate::assembler::operand_parsers::integer_operand;
 use crate::assembler::register_parsers::register;
+use crate::instructions::Opcode;
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstruction {
@@ -59,6 +60,26 @@ impl AssemblerInstruction {
 }
 
 pub fn instruction_one(s: &str) -> IResult<&str, AssemblerInstruction> {
+    if s == "" {
+        return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
+    };
+    let o = opcode(s);
+    Ok((
+        "",
+        AssemblerInstruction {
+            opcode: o,
+            operand1: None,
+            operand2: None,
+            operand3: None,
+        }
+    ))
+}
+
+pub fn instruction_three(s: &str) -> IResult<&str, AssemblerInstruction> {
+    if s == "" {
+        return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
+    };
+
     let s: Vec<&str> = s.split(' ').collect();
     let o = opcode(s[0]);
     let r = register(s[1])?.1;
@@ -81,7 +102,24 @@ mod tests {
 
     #[test]
     fn test_parse_instruction_form_one() {
-        let result = instruction_one("load $0 #100\n");
+        let result = instruction_one("hlt");
+        assert_eq!(
+            result,
+            Ok((
+                "",
+                AssemblerInstruction {
+                    opcode: Token::Op { code: Opcode::HLT },
+                    operand1: None,
+                    operand2: None,
+                    operand3: None
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_instruction_from_three() {
+        let result = instruction_three("load $0 #100");
         assert_eq!(
             result,
             Ok((

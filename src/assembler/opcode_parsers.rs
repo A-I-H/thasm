@@ -1,4 +1,3 @@
-use nom::{bytes::complete::tag_no_case, IResult};
 use crate::instructions::Opcode;
 use super::Token;
 

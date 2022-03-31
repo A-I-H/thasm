@@ -45,7 +45,7 @@ impl From<u8> for Opcode {
 
 impl From<&str> for Opcode {
     fn from(s: &str) -> Self {
-        match s {
+        match &s.to_lowercase() as &str {
             "load" => Opcode::LOAD,
             "add" => Opcode::ADD,
             "sub" => Opcode::SUB,

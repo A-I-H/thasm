@@ -1,6 +1,6 @@
 use nom::{IResult, multi::many1};
 
-use crate::assembler::instruction_parsers::{AssemblerInstruction, instruction_one};
+use crate::assembler::instruction_parsers::{AssemblerInstruction, instruction_three};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
@@ -18,7 +18,7 @@ impl Program {
 }
 
 pub fn program(s: &str) -> IResult<&str, Program> {
-    many1(instruction_one)(s)
+    many1(instruction_three)(s)
         .map(|(res, instructions)| (res, Program { instructions }))
 }
 
@@ -28,7 +28,7 @@ mod tests {
 
     #[test]
     fn test_parse_program() {
-        let result = program("load $0 #100\n");
+        let result = program("load $0 #100 load $0 #100");
         assert_eq!(result.is_ok(), true);
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
@@ -41,11 +41,10 @@ mod tests {
 
     #[test]
     fn test_program_to_bytes() {
-        let result = program("load $0 #100\n");
+        let result = program("load $0 #100");
         assert_eq!(result.is_ok(), true);
         let (_, program) = result.unwrap();
         let bytecode = program.to_bytes();
         assert_eq!(bytecode.len(), 4);
-        println!("{:?}", bytecode);
     }
 }
