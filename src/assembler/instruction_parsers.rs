@@ -64,98 +64,45 @@ pub fn instruction(s: &str) -> IResult<&str, AssemblerInstruction> {
         return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
     };
 
-    const LEN_ONE: [&str; 1] = ["hlt"];
-    const LEN_TWO: [&str; 3] = ["jmp", "jmpf", "jmpb"];
-    const LEN_THREE: [&str; 2] = ["load", "jeq"];
-    const LEN_FOUR: [&str; 10] = ["add", "sub", "mul", "div", "eq", "neq", "gte", "gt", "lte", "lt"];
+    const O: [&str; 1] = ["hlt"];
+    const OR: [&str; 3] = ["jmp", "jmpf", "jmpb"];
+    const ORI: [&str; 1] = ["load"];
+    const ORR: [&str; 1] = ["jeq"];
+    const ORRR: [&str; 10] = ["add", "sub", "mul", "div", "eq", "neq", "gte", "gt", "lte", "lt"];
+
+    let mut opc: Token = Token::Op{code: Opcode::IGL};
+    let mut opr1: Option<Token> = None;
+    let mut opr2: Option<Token> = None;
+    let mut opr3: Option<Token> = None;
 
     let sv: Vec<&str> = s.trim().split(' ').collect();
-    if LEN_ONE.iter().any( |&i| i==sv[0] ) {
-        return instruction_one(s);
-    } else if LEN_TWO.iter().any( |&i| i==sv[0] ) {
-        return instruction_two(s);
-    } else if LEN_THREE.iter().any( |&i| i==sv[0] ) {
-        return instruction_three(s);
-    } else if LEN_FOUR.iter().any( |&i| i==sv[0] ) {
-
+    if O.iter().any( |&i| i==sv[0] ) {
+        opc = opcode(s);
+    } else if OR.iter().any( |&i| i==sv[0] ) {
+        opc = opcode(sv[0]);
+        opr1 = Some(register(sv[1])?.1);
+    } else if ORI.iter().any( |&i| i==sv[0] ) {
+        opc = opcode(sv[0]);
+        opr1 = Some(register(sv[1])?.1);
+        opr2 = Some(integer_operand(sv[2])?.1);
+    } else if ORR.iter().any( |&i| i==sv[0] ) {
+        opc = opcode(sv[0]);
+        opr1 = Some(register(sv[1])?.1);
+        opr2 = Some(register(sv[2])?.1);
+    } else if ORRR.iter().any( |&i| i==sv[0] ) {
+        opc = opcode(sv[0]);
+        opr1 = Some(register(sv[1])?.1);
+        opr2 = Some(register(sv[2])?.1);
+        opr3 = Some(register(sv[3])?.1);
     };
 
-    return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
-}
-
-fn instruction_one(s: &str) -> IResult<&str, AssemblerInstruction> {
-    if s == "" {
-        return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
-    };
-    let o = opcode(s);
     Ok((
         "",
         AssemblerInstruction {
-            opcode: o,
-            operand1: None,
-            operand2: None,
-            operand3: None,
-        }
-    ))
-}
-
-fn instruction_two(s: &str) -> IResult<&str, AssemblerInstruction> {
-    if s == "" {
-        return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
-    };
-
-    let s: Vec<&str> = s.split(' ').collect();
-    let o = opcode(s[0]);
-    let r1 = register(s[1])?.1;
-    let r2 = register(s[2])?.1;
-    let r3 = register(s[3])?.1;
-    Ok((
-        "",
-        AssemblerInstruction {
-            opcode: o,
-            operand1: Some(r1),
-            operand2: Some(r2),
-            operand3: Some(r3),
-        }
-    ))
-}
-
-fn instruction_three(s: &str) -> IResult<&str, AssemblerInstruction> {
-    if s == "" {
-        return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
-    };
-
-    let s: Vec<&str> = s.split(' ').collect();
-    let o = opcode(s[0]);
-    let r = register(s[1])?.1;
-    let i = integer_operand(s[2])?.1;
-    Ok((
-        "",
-        AssemblerInstruction {
-            opcode: o,
-            operand1: Some(r),
-            operand2: Some(i),
-            operand3: None,
-        }
-    ))
-}
-
-fn instruction_four(s: &str) -> IResult<&str, AssemblerInstruction> {
-    if s == "" {
-        return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
-    };
-
-    let s: Vec<&str> = s.split(' ').collect();
-    let o = opcode(s[0]);
-    let r = register(s[1])?.1;
-    let i = integer_operand(s[2])?.1;
-    Ok((
-        "",
-        AssemblerInstruction {
-            opcode: o,
-            operand1: Some(r),
-            operand2: Some(i),
-            operand3: None,
+            opcode: opc,
+            operand1: opr1,
+            operand2: opr2,
+            operand3: opr3,
         }
     ))
 }
@@ -166,8 +113,8 @@ mod tests {
     use crate::instructions::Opcode;
 
     #[test]
-    fn test_parse_instruction_form_one() {
-        let result = instruction_one("hlt");
+    fn test_parse_instruction_one() {
+        let result = instruction("hlt");
         assert_eq!(
             result,
             Ok((
@@ -183,8 +130,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_instruction_from_three() {
-        let result = instruction_three("load $0 #100");
+    fn test_parse_instruction_three() {
+        let result = instruction("load $0 #100");
         assert_eq!(
             result,
             Ok((
