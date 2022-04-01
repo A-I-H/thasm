@@ -1,6 +1,6 @@
 use nom::{IResult, multi::many1};
 
-use crate::assembler::instruction_parsers::{AssemblerInstruction, instruction_three};
+use crate::assembler::instruction_parsers::{AssemblerInstruction, instruction};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
@@ -18,7 +18,7 @@ impl Program {
 }
 
 pub fn program(s: &str) -> IResult<&str, Program> {
-    many1(instruction_three)(s)
+    many1(instruction)(s)
         .map(|(res, instructions)| (res, Program { instructions }))
 }
 
