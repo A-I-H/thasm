@@ -96,8 +96,6 @@ pub fn instruction(mut s: &str) -> IResult<&str, AssemblerInstruction> {
     } else if OR.contains(&sv[0]) && sv.len() >= 2 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
-        s = tag_no_case(sv[0])(s.trim())?.0;
-        s = tag_no_case(sv[1])(s.trim())?.0;
         for i in sv.into_iter().take(2) {
             s = tag_no_case(i)(s.trim())?.0;
         }

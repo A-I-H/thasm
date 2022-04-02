@@ -5,6 +5,7 @@ pub struct VM {
     pub registers: [i32; 32],
     pc: usize,
     pub program: Vec<u8>,
+    // heap: Vec<u8>,
     remainder: u32,
 }
 
@@ -14,6 +15,7 @@ impl VM {
             registers: [0; 32],
             pc: 0,
             program: vec![],
+            // heap: vec![],
             remainder: 0,
         }
     }
@@ -67,7 +69,7 @@ impl VM {
             }
             Opcode::HLT => {
                 println!("HLT encountered");
-                return true;
+                // return true;
             }
             Opcode::JMP => {
                 let target = self.registers[self.next_8_bits() as usize];
@@ -198,6 +200,15 @@ mod tests {
     }
 
     #[test]
+    fn test_opcode_length() {
+        let mut test_vm = VM::new();
+        let test_bytes = vec![5, 0, 0, 0, 5, 0, 1, 0, 10, 1, 0, 1, 2]; // Ja Sem, dit werkt wees niet bang :)
+        test_vm.program = test_bytes;
+        test_vm.run();
+        assert_eq!(test_vm.pc, 13)
+    }
+
+    #[test]
     fn test_opcode_hlt() {
         let mut test_vm = VM::new();
         let test_bytes = vec![5, 0, 0, 0];
@@ -218,7 +229,7 @@ mod tests {
     #[test]
     fn test_load_opcode() {
         let mut test_vm = VM::get_test_vm();
-        test_vm.program = vec![0, 0, 1, 244]; // Remember, this is how we represent 500 using two u8s in little endian format
+        test_vm.program = vec![0, 0, 1, 244];
         test_vm.run();
         assert_eq!(test_vm.registers[0], 500);
     }
