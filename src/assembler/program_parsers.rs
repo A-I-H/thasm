@@ -1,10 +1,10 @@
-use nom::{IResult, multi::many1};
+use nom::{multi::many1, IResult};
 
-use crate::assembler::instruction_parsers::{AssemblerInstruction, instruction};
+use crate::assembler::instruction_parsers::{instruction, AssemblerInstruction};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    instructions: Vec<AssemblerInstruction>
+    instructions: Vec<AssemblerInstruction>,
 }
 
 impl Program {
@@ -18,8 +18,7 @@ impl Program {
 }
 
 pub fn program(s: &str) -> IResult<&str, Program> {
-    many1(instruction)(s)
-        .map(|(res, instructions)| (res, Program { instructions }))
+    many1(instruction)(s).map(|(res, instructions)| (res, Program { instructions }))
 }
 
 #[cfg(test)]
@@ -28,15 +27,29 @@ mod tests {
 
     #[test]
     fn test_parse_program() {
-        let result = program("load $0 #100 load $0 #100");
+        let result = program("load $0 #10");
         assert_eq!(result.is_ok(), true);
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(
-            1,
-            p.instructions.len()
-        );
+        assert_eq!(1, p.instructions.len());
         // TODO: Figure out an ergonomic way to test the AssemblerInstruction returned
+    }
+
+    #[test]
+    fn test_parse_multiple_instructions() {
+        let result = program("load $0 #10 load $1 #5");
+        assert_eq!(result.is_ok(), true);
+        let (leftover, p) = result.unwrap();
+        assert_eq!(leftover, "");
+        assert_eq!(2, p.instructions.len());
+        println!("{:?}", p.instructions);
+
+        let result = program("load $0 #10 load $1 #5 add $0 $1 $2");
+        assert_eq!(result.is_ok(), true);
+        let (leftover, p) = result.unwrap();
+        assert_eq!(leftover, "");
+        assert_eq!(3, p.instructions.len());
+        println!("{:?}", p.instructions);
     }
 
     #[test]

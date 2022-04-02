@@ -1,10 +1,10 @@
-use nom::IResult;
-use nom::bytes::complete::tag;
-use crate::assembler::Token;
 use crate::assembler::opcode_parsers::*;
 use crate::assembler::operand_parsers::integer_operand;
 use crate::assembler::register_parsers::register;
+use crate::assembler::Token;
 use crate::instructions::Opcode;
+use nom::bytes::complete::{tag, tag_no_case};
+use nom::IResult;
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstruction {
@@ -59,51 +59,96 @@ impl AssemblerInstruction {
     }
 }
 
-pub fn instruction(s: &str) -> IResult<&str, AssemblerInstruction> {
+pub fn instruction(mut s: &str) -> IResult<&str, AssemblerInstruction> {
     if s == "" {
-        return tag(" ")("").map(|(res, _)| (res, AssemblerInstruction {opcode: Token::Op{code: Opcode::IGL}, operand1: None, operand2: None, operand3: None}));
+        return tag(" ")("").map(|(res, _)| {
+            (
+                res,
+                AssemblerInstruction {
+                    opcode: Token::Op { code: Opcode::IGL },
+                    operand1: None,
+                    operand2: None,
+                    operand3: None,
+                },
+            )
+        });
+    } else {
+        s = s.trim();
     };
 
     const O: [&str; 1] = ["hlt"];
     const OR: [&str; 3] = ["jmp", "jmpf", "jmpb"];
     const ORI: [&str; 1] = ["load"];
     const ORR: [&str; 1] = ["jeq"];
-    const ORRR: [&str; 10] = ["add", "sub", "mul", "div", "eq", "neq", "gte", "gt", "lte", "lt"];
+    const ORRR: [&str; 10] = [
+        "add", "sub", "mul", "div", "eq", "neq", "gte", "gt", "lte", "lt",
+    ];
 
-    let mut opc: Token = Token::Op{code: Opcode::IGL};
+    #[allow(unused_assignments)]
+    let mut opc: Token = Token::Op { code: Opcode::IGL };
     let mut opr1: Option<Token> = None;
     let mut opr2: Option<Token> = None;
     let mut opr3: Option<Token> = None;
 
     let sv: Vec<&str> = s.trim().split(' ').collect();
-    if O.iter().any( |&i| i==sv[0] ) {
-        opc = opcode(s);
-    } else if OR.iter().any( |&i| i==sv[0] ) {
+    if O.contains(&sv[0]) {
+        opc = opcode(sv[0]);
+        s = tag_no_case(sv[0])(s)?.0;
+    } else if OR.contains(&sv[0]) && sv.len() >= 2 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
-    } else if ORI.iter().any( |&i| i==sv[0] ) {
+        s = tag_no_case(sv[0])(s.trim())?.0;
+        s = tag_no_case(sv[1])(s.trim())?.0;
+        for i in 0..2 {
+            s = tag_no_case(sv[i])(s.trim())?.0;
+        }
+    } else if ORI.contains(&sv[0]) && sv.len() >= 3 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
         opr2 = Some(integer_operand(sv[2])?.1);
-    } else if ORR.iter().any( |&i| i==sv[0] ) {
+        for i in 0..3 {
+            s = tag_no_case(sv[i])(s.trim())?.0;
+        }
+    } else if ORR.contains(&sv[0]) && sv.len() >= 3 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
         opr2 = Some(register(sv[2])?.1);
-    } else if ORRR.iter().any( |&i| i==sv[0] ) {
+        for i in 0..3 {
+            s = tag_no_case(sv[i])(s.trim())?.0;
+        }
+    } else if ORRR.contains(&sv[0]) && sv.len() >= 4 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
         opr2 = Some(register(sv[2])?.1);
         opr3 = Some(register(sv[3])?.1);
+        for i in 0..4 {
+            s = tag_no_case(sv[i])(s.trim())?.0;
+        }
+    } else if O.contains(&sv[0])
+        || OR.contains(&sv[0])
+        || ORI.contains(&sv[0])
+        || ORR.contains(&sv[0])
+        || ORRR.contains(&sv[0])
+    {
+        return Ok((
+            "",
+            AssemblerInstruction {
+                opcode: Token::Op { code: Opcode::NEI },
+                operand1: None,
+                operand2: None,
+                operand3: None,
+            },
+        ));
     };
 
     Ok((
-        "",
+        s.trim(),
         AssemblerInstruction {
             opcode: opc,
             operand1: opr1,
             operand2: opr2,
             operand3: opr3,
-        }
+        },
     ))
 }
 
