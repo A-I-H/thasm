@@ -18,13 +18,13 @@ mod tests {
     fn test_parse_integer_operand() {
         // Test a valid integer operand
         let result = integer_operand("#10");
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         let (rest, value) = result.unwrap();
         assert_eq!(rest, "");
         assert_eq!(value, Token::IntegerOperand { value: 10 });
 
         // Test an invalid one (missing the #)
         let result = integer_operand("10");
-        assert_eq!(result.is_ok(), false);
+        assert!(result.is_err());
     }
 }

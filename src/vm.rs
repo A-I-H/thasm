@@ -144,10 +144,6 @@ impl VM {
                     _ => println!("Non-Valid register"),
                 }
             }
-            Opcode::NEI => {
-                println!("Not enough inputs! Terminating!");
-                return true;
-            }
             Opcode::IGL => {
                 println!("Unrecognized opcode found! Terminating!");
                 return true;
@@ -169,19 +165,25 @@ impl VM {
     fn decode_opcode(&mut self) -> Opcode {
         let opcode = Opcode::from(self.program[self.pc]);
         self.pc += 1;
-        return opcode;
+        opcode
     }
 
     fn next_8_bits(&mut self) -> u8 {
         let result = self.program[self.pc];
         self.pc += 1;
-        return result;
+        result
     }
 
     fn next_16_bits(&mut self) -> u16 {
         let result = ((self.program[self.pc] as u16) << 8) | self.program[self.pc + 1] as u16;
         self.pc += 2;
-        return result;
+        result
+    }
+}
+
+impl Default for VM {
+    fn default() -> Self {
+        VM::new()
     }
 }
 

@@ -16,7 +16,6 @@ pub enum Opcode {
     LT,
     GT,
     JEQ,
-    NEI,
     IGL,
 }
 
@@ -39,7 +38,6 @@ impl From<u8> for Opcode {
             13 => Opcode::LT,
             14 => Opcode::GT,
             15 => Opcode::JEQ,
-            16 => Opcode::NEI,
             _ => Opcode::IGL,
         }
     }
@@ -76,7 +74,7 @@ pub struct Instruction {
 
 impl Instruction {
     pub fn new(opcode: Opcode) -> Instruction {
-        Instruction { opcode: opcode }
+        Instruction { opcode }
     }
 }
 

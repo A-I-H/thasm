@@ -28,7 +28,7 @@ mod tests {
     #[test]
     fn test_parse_program() {
         let result = program("load $0 #10");
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
         assert_eq!(1, p.instructions.len());
@@ -38,14 +38,14 @@ mod tests {
     #[test]
     fn test_parse_multiple_instructions() {
         let result = program("load $0 #10 load $1 #5");
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
         assert_eq!(2, p.instructions.len());
         println!("{:?}", p.instructions);
 
         let result = program("load $0 #10 load $1 #5 add $0 $1 $2");
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
         assert_eq!(3, p.instructions.len());
@@ -55,7 +55,7 @@ mod tests {
     #[test]
     fn test_program_to_bytes() {
         let result = program("load $0 #100");
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         let (_, program) = result.unwrap();
         let bytecode = program.to_bytes();
         assert_eq!(bytecode.len(), 4);

@@ -7,6 +7,7 @@ use nom::bytes::complete::{tag, tag_no_case};
 use nom::IResult;
 
 #[derive(Debug, PartialEq)]
+
 pub struct AssemblerInstruction {
     opcode: Token,
     operand1: Option<Token>,
@@ -18,10 +19,8 @@ impl AssemblerInstruction {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut results = vec![];
         match self.opcode {
-            Token::Op { code } => match code {
-                _ => {
-                    results.push(code as u8);
-                }
+            Token::Op { code } => {
+                results.push(code as u8);
             },
             _ => {
                 println!("Non-opcode found in opcode field");
@@ -29,14 +28,14 @@ impl AssemblerInstruction {
             }
         };
 
-        for operand in vec![&self.operand1, &self.operand2, &self.operand3] {
+        for operand in [&self.operand1, &self.operand2, &self.operand3] {
             match operand {
                 Some(t) => AssemblerInstruction::extract_operand(t, &mut results),
                 None => {}
             }
         }
 
-        return results;
+        results
     }
 
     fn extract_operand(t: &Token, results: &mut Vec<u8>) {
@@ -60,7 +59,7 @@ impl AssemblerInstruction {
 }
 
 pub fn instruction(mut s: &str) -> IResult<&str, AssemblerInstruction> {
-    if s == "" {
+    if s.is_empty() {
         return tag(" ")("").map(|(res, _)| {
             (
                 res,
@@ -99,46 +98,31 @@ pub fn instruction(mut s: &str) -> IResult<&str, AssemblerInstruction> {
         opr1 = Some(register(sv[1])?.1);
         s = tag_no_case(sv[0])(s.trim())?.0;
         s = tag_no_case(sv[1])(s.trim())?.0;
-        for i in 0..2 {
-            s = tag_no_case(sv[i])(s.trim())?.0;
+        for i in sv.into_iter().take(2) {
+            s = tag_no_case(i)(s.trim())?.0;
         }
     } else if ORI.contains(&sv[0]) && sv.len() >= 3 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
         opr2 = Some(integer_operand(sv[2])?.1);
-        for i in 0..3 {
-            s = tag_no_case(sv[i])(s.trim())?.0;
+        for i in sv.into_iter().take(3) {
+            s = tag_no_case(i)(s.trim())?.0;
         }
     } else if ORR.contains(&sv[0]) && sv.len() >= 3 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
         opr2 = Some(register(sv[2])?.1);
-        for i in 0..3 {
-            s = tag_no_case(sv[i])(s.trim())?.0;
+        for i in sv.into_iter().take(3) {
+            s = tag_no_case(i)(s.trim())?.0;
         }
     } else if ORRR.contains(&sv[0]) && sv.len() >= 4 {
         opc = opcode(sv[0]);
         opr1 = Some(register(sv[1])?.1);
         opr2 = Some(register(sv[2])?.1);
         opr3 = Some(register(sv[3])?.1);
-        for i in 0..4 {
-            s = tag_no_case(sv[i])(s.trim())?.0;
+        for i in sv.into_iter().take(4) {
+            s = tag_no_case(i)(s.trim())?.0;
         }
-    } else if O.contains(&sv[0])
-        || OR.contains(&sv[0])
-        || ORI.contains(&sv[0])
-        || ORR.contains(&sv[0])
-        || ORRR.contains(&sv[0])
-    {
-        return Ok((
-            "",
-            AssemblerInstruction {
-                opcode: Token::Op { code: Opcode::NEI },
-                operand1: None,
-                operand2: None,
-                operand3: None,
-            },
-        ));
     };
 
     Ok((
