@@ -76,7 +76,7 @@ pub fn instruction(mut s: &str) -> IResult<&str, AssemblerInstruction> {
     };
 
     const O: [&str; 1] = ["hlt"];
-    const OR: [&str; 3] = ["jmp", "jmpf", "jmpb"];
+    const OR: [&str; 4] = ["jmp", "jmpf", "jmpb", "aloc"];
     const ORI: [&str; 1] = ["load"];
     const ORR: [&str; 1] = ["jeq"];
     const ORRR: [&str; 10] = [
@@ -89,7 +89,9 @@ pub fn instruction(mut s: &str) -> IResult<&str, AssemblerInstruction> {
     let mut opr2: Option<Token> = None;
     let mut opr3: Option<Token> = None;
 
-    let sv: Vec<&str> = s.trim().split(' ').collect();
+    let mut sv: Vec<&str> = s.trim().split(' ').collect();
+    sv.retain(|s| !s.is_empty());
+    
     if O.contains(&sv[0]) {
         opc = opcode(sv[0]);
         s = tag_no_case(sv[0])(s)?.0;

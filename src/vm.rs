@@ -5,7 +5,7 @@ pub struct VM {
     pub registers: [i32; 32],
     pc: usize,
     pub program: Vec<u8>,
-    // heap: Vec<u8>,
+    pub heap: Vec<u8>,
     remainder: u32,
 }
 
@@ -15,7 +15,7 @@ impl VM {
             registers: [0; 32],
             pc: 0,
             program: vec![],
-            // heap: vec![],
+            heap: vec![],
             remainder: 0,
         }
     }
@@ -69,11 +69,11 @@ impl VM {
             }
             Opcode::HLT => {
                 println!("HLT encountered");
-                // return true;
+                return true;
             }
             Opcode::JMP => {
-                let target = self.registers[self.next_8_bits() as usize];
-                self.pc = target as usize;
+                let target = self.registers[self.next_8_bits() as usize] as usize;
+                self.pc = target;
             }
             Opcode::JMPF => {
                 let value = self.registers[self.next_8_bits() as usize] as usize;
@@ -146,6 +146,12 @@ impl VM {
                     _ => println!("Non-Valid register"),
                 }
             }
+            Opcode::ALOC => {
+                let register = self.next_8_bits() as usize;
+                let bytes = self.registers[register];
+                let new_end = self.heap.len() as i32 + bytes;
+                self.heap.resize(new_end as usize, 0);
+            }
             Opcode::IGL => {
                 println!("Unrecognized opcode found! Terminating!");
                 return true;
@@ -197,15 +203,6 @@ mod tests {
     fn test_create_vm() {
         let test_vm = VM::new();
         assert_eq!(test_vm.registers[0], 0)
-    }
-
-    #[test]
-    fn test_opcode_length() {
-        let mut test_vm = VM::new();
-        let test_bytes = vec![5, 0, 0, 0, 5, 0, 1, 0, 10, 1, 0, 1, 2]; // Ja Sem, dit werkt wees niet bang :)
-        test_vm.program = test_bytes;
-        test_vm.run();
-        assert_eq!(test_vm.pc, 13)
     }
 
     #[test]
@@ -392,5 +389,14 @@ mod tests {
         test_vm.program = vec![15, 0, 1, 0, 15, 0, 0, 0, 15, 0, 0, 0];
         test_vm.run_once();
         assert_eq!(test_vm.pc, 7);
+    }
+
+    #[test]
+    fn test_aloc_opcode() {
+        let mut test_vm = VM::get_test_vm();
+        test_vm.registers[0] = 1024;
+        test_vm.program = vec![16, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.heap.len(), 1024);
     }
 }

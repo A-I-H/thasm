@@ -59,19 +59,17 @@ impl REPL {
                     println!("End of Register Listing")
                 }
                 _ => {
-                    let parsed_program = program(buffer);
-                    if parsed_program.is_err() {
-                        println!("Unable to parse input");
-                        continue;
-                    }
-                    let (_, result) = parsed_program.unwrap();
-                    let bytecode = result.to_bytes();
-                    // TODO: Make a function to let us add bytes to the VM
-                    for byte in bytecode {
-                        self.vm.add_byte(byte);
-                    }
+                    let program = match program(buffer) {
+                        Ok((_,  program)) => program,
+                        Err(_) => {
+                            println!("Unable to parse input");
+                            continue;
+                        }
+                    };
+                    
+                    self.vm.program.append(&mut program.to_bytes());
                     self.vm.run();
-                }
+                  }
             }
         }
     }
