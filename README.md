@@ -11,4 +11,4 @@ Features:
 
 That's it right now I'm currently following a tutorial so more features will come in the future!
 
-Ps: Info about how to write and use thasm will be written soon.
+Ps: Info about how to write and use thasm is in the process of being written.
